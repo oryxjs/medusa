@@ -1,5 +1,12 @@
+const repoUrl = "https://github.com/oryxjs/medusa.git"
+const username = process.env.USERNAME
+const password = process.env.PASSWORD
 const jsGit = require("simple-git")
-const git = jsGit.default()
+const url = new URL(repoUrl)
+const authConfig = `credential.${url.origin}.helper='!f() { echo username=${username} && echo password=${password}; }; f'`
+const git = jsGit.default({
+  config: [authConfig],
+})
 const fs = require("fs")
 
 async function main() {
@@ -16,7 +23,6 @@ async function main() {
     const packages_dir = process.cwd().concat("/packages")
     fs.readdirSync(packages_dir)
       .filter((p) => !p.startsWith("."))
-      .slice(0, 1)
       .map((p) => {
         // rename a package before creating a branch
         const renamed_package = p.replace(/medusa/, "oryx")
@@ -34,8 +40,10 @@ async function main() {
             if (err) {
               throw new err()
             }
+            git.push("origin", renamed_package, ["-u"])
             console.log(
-              "Pull and Creating/Updating subtree done successfully \n" + resp
+              "Pull and Creating/Updating subtree branches done successfully \n" +
+                resp
             )
           }
         )
